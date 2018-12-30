@@ -8,12 +8,11 @@ $stmt->execute();
 
 $data = [];
 while ($row = $stmt->fetch()) {
-	$obj = null;
-	$obj->temperature = (double) $row['temperature'];
-	$obj->humidity = (double) $row['humidity'];
-	$obj->time = $row['time'];
-	
-	$data[] = $obj;
+	$data[] = [
+		"temperature" => (double) $row['temperature'],
+		"humidity" => (double) $row['humidity'],
+		"time" => $row['time']
+	];
 }
 
 $conn = null;
