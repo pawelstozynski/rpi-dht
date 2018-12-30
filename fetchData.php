@@ -16,6 +16,7 @@ while ($row = $stmt->fetch()) {
 	$data[] = $obj;
 }
 
+$conn = null;
 $json = json_encode($data);
 echo $json;
 
