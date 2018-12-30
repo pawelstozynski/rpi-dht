@@ -6,24 +6,37 @@
 	<script src="./js/jquery-3.3.1.min.js"></script>
 
 	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: verdana;
+			color: #fff;
+			background-image: linear-gradient(135deg, #332e73, #554db3);
+		}
+		#container {
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			align-items: center;
+		}
 		#left-col {
 			width: 75%;
-			float: left;
 		}
 		#right-col {
 			width: 25%;
-			float: left;
 			text-align: center;
 		}
 	</style>
 </head>
 <body>
-	<div id="left-col">
-		<canvas id="myChart"></canvas>
-	</div>
-	<div id="right-col">
-		<h2>Temperature: <span id="temperature"></span>°C</h2>
-		<h2>Humidity: <span id="humidity"></span>%</h2>
+	<div id="container">
+		<div id="left-col">
+			<canvas id="myChart"></canvas>
+		</div>
+		<div id="right-col">
+			<h2>Temperature: <span id="temperature"></span>&deg;C</h2>
+			<h2>Humidity: <span id="humidity"></span>%</h2>
+		</div>
 	</div>
 
 	<script>
@@ -52,20 +65,38 @@
 						datasets: [
 							{
 								label: 'Temperature',
-								backgroundColor: 'red',
-								borderColor: 'red',
+								yAxisID: 'temp',
+								backgroundColor: '#f4416e',
+								borderColor: '#f4416e',
 								fill: false,
 								data: temperatureArr
 							}, {
 								label: 'Humidity',
-								backgroundColor: 'blue',
-								borderColor: 'blue',
+								yAxisID: 'hum',
+								backgroundColor: '#4286f4',
+								borderColor: '#4286f4',
 								fill: false,
 								data: humidityArr
 							}
 						]
+					},
+					options: {
+						scales: {
+							yAxes: [
+								{
+									id: 'temp',
+									position: 'left',
+								}, {
+									id: 'hum',
+									position: 'right'
+								}
+							]
+						}
 					}
 				});
+
+				Chart.defaults.global.defaultFontColor = '#fff';
+				Chart.defaults.global.defaultFontFamily = 'Verdana';
 			});
 
 		});
