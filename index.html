@@ -32,6 +32,9 @@
 	<div id="container">
 		<div id="left-col">
 			<canvas id="myChart"></canvas>
+			<div>
+				<input type="date" id="date-input"/>
+			</div>
 		</div>
 		<div id="right-col">
 			<h2>Temperature: <span id="temperature"></span>&deg;C</h2>
@@ -42,64 +45,121 @@
 	<script>
 		$(document).ready(() => {
 			let ctx = document.getElementById("myChart").getContext("2d");
+			let chart = null;
+			
+			fetchData().then(data => {
+				chart = initChart(ctx, data);
+				
+				let date = formatDate(new Date());
+				populateChart(chart, data, date);
 
-			$.getJSON('./fetchData.php').then(data => {
-				let len = data.length;
-				let temperatureArr = [];
-				let humidityArr = [];
-				let timeArr = [];
-
-				data.forEach(x => {
-					temperatureArr.push(x.temperature);
-					humidityArr.push(x.humidity);
-					timeArr.push(x.time);
-				});
-
-				$("#temperature").text(temperatureArr[len-1]);
-				$("#humidity").text(humidityArr[len-1]);
-
-				let myChart = new Chart(ctx, {
-					type: 'line',
-					data: {
-						labels: timeArr,
-						datasets: [
-							{
-								label: 'Temperature',
-								yAxisID: 'temp',
-								backgroundColor: '#f4416e',
-								borderColor: '#f4416e',
-								fill: false,
-								data: temperatureArr
-							}, {
-								label: 'Humidity',
-								yAxisID: 'hum',
-								backgroundColor: '#4286f4',
-								borderColor: '#4286f4',
-								fill: false,
-								data: humidityArr
-							}
-						]
-					},
-					options: {
-						scales: {
-							yAxes: [
-								{
-									id: 'temp',
-									position: 'left'
-								}, {
-									id: 'hum',
-									position: 'right'
-								}
-							]
-						}
-					}
-				});
-
-				Chart.defaults.global.defaultFontColor = '#fff';
-				Chart.defaults.global.defaultFontFamily = 'Verdana';
+				let {temperatureArr, humidityArr} = splitData(data);
+				let len = temperatureArr.length;
+				$('#temperature').text(temperatureArr[len-1]);
+				$('#humidity').text(humidityArr[len-1]);
 			});
 
+
+			$('#date-input').change(() => {
+				let date = formatDate(new Date($('#date-input').val()));
+				fetchData(date).then(data => {
+					populateChart(chart, data, date);
+				});
+			});
 		});
+
+		function initChart(ctx, data) {
+			let chart = new Chart(ctx, {
+				type: 'line',
+				data: {
+					datasets: [
+						{
+							label: 'Temperature',
+							yAxisID: 'temp',
+							backgroundColor: '#f4416e',
+							borderColor: '#f4416e',
+							fill: false,
+						}, {
+							label: 'Humidity',
+							yAxisID: 'hum',
+							backgroundColor: '#4286f4',
+							borderColor: '#4286f4',
+							fill: false,
+						}
+					]
+				},
+				options: {
+					title: {
+						display: true,	
+					},
+					scales: {
+						yAxes: [
+							{
+								id: 'temp',
+								position: 'left'
+							}, {
+								id: 'hum',
+								position: 'right'
+							}
+						]
+					}
+				}
+			});
+
+
+			Chart.defaults.global.defaultFontColor = '#fff';
+			Chart.defaults.global.defaultFontFamily = 'Verdana';
+
+			return chart;
+		}
+
+		function fetchData(date) {
+			let d = date ? `?date=${date}` : '';
+			return $.getJSON(`./fetchData.php${d}`).then(data => {
+				return data;
+			});
+		}
+
+		function splitData(data) {
+			let len = data.length;
+			let temperatureArr = [];
+			let humidityArr = [];
+			let timeArr = [];
+	
+			data.forEach(x => {
+				temperatureArr.push(x.temperature);
+				humidityArr.push(x.humidity);
+				timeArr.push(x.time);
+			});
+
+			return {timeArr, temperatureArr, humidityArr};
+		}
+
+		function populateChart(chart, data, title) {
+			let {timeArr, temperatureArr, humidityArr} = splitData(data);
+			
+			chart.options.title.text = title || '';
+			chart.data.labels = timeArr.map(t => formatHourMinute(t));
+			chart.data.datasets.forEach(ds => {
+				if (ds.label === 'Temperature') ds.data = temperatureArr;
+				else if (ds.label === 'Humidity') ds.data = humidityArr;
+			});
+			chart.update();
+		}
+
+		function formatDate(date) {
+			let m = date.getMonth()+1;
+			let d = date.getDate();
+			return `${date.getFullYear()}-${m > 9 ? m : '0'+m}-${d > 9 ? d : '0'+d}`
+		}
+
+		function formatHourMinute(dateString) {
+			let date = new Date(dateString);
+			let h = date.getHours();
+			let m = date.getMinutes();
+			return `${h > 9 ? h : '0'+h}:${m > 9 ? m : '0'+m}`;
+		}
+
 	</script>
 </body>
 </html>
